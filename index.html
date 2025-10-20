@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Noto Sans";
+            background: linear-gradient(180deg, #667eea 0%, #08040c 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0);
+            /* border-radius: 20px; */
+            padding: 1rem;
+            /* box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); */
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 4rem;
+            margin-top: 2rem;
+        }
+
+        .column {
+            padding: 1.5rem;
+            background: #ffffff23;
+            /* border-radius: 15px; */
+            /* box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); */
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: .5rem;
+            color: #ffffff;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .emoji {
+            font-size: 2rem;
+            margin-left: 0.5rem;
+        }
+
+        a.course-link {
+            display: inline-block;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            transition: color 0.3s;
+        }
+
+        a.course-link:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        hr {
+            border: none;
+            border-top: 5px solid #ffffff;
+            margin: 1rem 0;
+        }
+
+        .project-description {
+            margin: 1rem 0;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .gallery-item .clickable {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+            color: #333;
+            padding: 1rem;
+            /* text-align: center; */
+        }
+
+        .caption {
+            font-size: 0.9rem;
+            font-weight: 300;
+            /* text-align: center; */
+            color: #ffffff;
+        }
+
+        .icon {
+            width: 90%;
+            /* height: 200px; */
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* PDF Viewer Modal */
+        .pdf-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pdf-modal.active {
+            display: flex;
+        }
+
+        .pdf-viewer {
+            width: 90%;
+            height: 90%;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .pdf-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .pdf-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .pdf-content {
+            flex: 1;
+            overflow: auto;
+            background: #525659;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .pdf-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        #pdfCanvas {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .loading {
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .columns {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .pdf-viewer {
+                width: 95%;
+                height: 95%;
+            }
+
+            .pdf-controls {
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="columns">
+            <!-- 3D Software Column -->
+            <div class="column">
+                <h2>
+                    <span>INTRO TO 3D SOFTWARE</span>
+                    <span class="emoji">🫖</span>
+                </h2>
+                <a href="javascript:void(0)" class="course-link"
+                    onclick="openCourseInfo('https://3dsoftware.vinnyroca.info/', 'Intro to 3D Software')">Learn more
+                    about the Course</a>
+                <hr>
+                <div class="project-description">
+                    <strong>Dream Object Project</strong><br>
+                    Click on images to explore 3D Rendered Art Books
+                </div>
+
+                <div class="gallery">
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/T2603399004826982672194413377009/julia_bueno_dreamObjectFinal.pdf', 'Julia Bueno')">
+                            <div>
+                                <img src="/asssets/three/Bueno.jpg" alt="Julia Bueno" class="icon">
+                                <div class="caption">Julia Bueno</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/G2604067792326585007157762176497/Dream_object.pdf', 'Ben Delport')">
+                            <div>
+                                <img src="/asssets/three/Delport.jpg" alt="Ben Delport" class="icon">
+                                <div class="caption">Ben Delport</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/U2603399004771642439973284722161/Perrin_Hinds_Tampering.pdf', 'Perrin Hinds')">
+                            <div>
+                                <img src="/asssets/three/Hinds.jpg" alt="Perrin Hinds" class="icon">
+                                <div class="caption">Perrin Hinds</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/E2603399004716302207752156067313/Yiran_Huang_dreamObjectFinal.pdf', 'Tracy Huang')">
+                            <div>
+                                <img src="/asssets/three/Huang.jpg" alt="Tracy Huang" class="icon">
+                                <div class="caption">Tracy Huang</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/O2604070978355987697902969533937/joon_kim_dreamObjectFinal-2.pdf', 'Joon Kim')">
+                            <div>
+                                <img src="/asssets/three/Kim.jpg" alt="Joon Kim" class="icon">
+                                <div class="caption">Joon Kim</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/Y2603399004753195695899575170545/Cecilia_Lai_DreamObjectFinal.pdf', 'Cecilia Lai')">
+                            <div>
+                                <img src="/asssets/three/Lai.jpg" alt="Cecilia Lai" class="icon">
+                                <div class="caption">Cecilia Lai</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openMedia('https://freight.cargo.site/m/A2604075941065099103909931234801/snoopy-meow-2025-10-02-07.25.58.mp4', 'Noa Scott')">
+                            <div>
+                                <img src="/asssets/three/Scott.jpg" alt="Noa Scott" class="icon">
+                                <div class="caption">Noa Scott</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/R2607714808224860995494826063345/zuriel_silva_DreamObjectPDF-2025-10-18-03.01.48.pdf', 'Zuriel Silva')">
+                            <div>
+                                <img src="/asssets/three/Silva.jpg" alt="Zuriel Silva" class="icon">
+                                <div class="caption">Zuriel Silva</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/B2604073055459370397598481495537/Dream-ObjectAurelia.pdf', 'Aurelia Sullivan')">
+                            <div>
+                                <img src="/asssets/three/Sullivan.jpg" alt="Aurelia Sullivan" class="icon">
+                                <div class="caption">Aurelia Sullivan</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openPDF('https://freight.cargo.site/m/F2603399004790089184046994273777/nOtes-about-EYEs-in-the-night.pdf', 'Elisa Yin')">
+                            <div>
+                                <img src="/asssets/three/Yin.jpg" alt="Elisa Yin" class="icon">
+                                <div class="caption">Elisa Yin</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+            </div>
+
+            <!-- Code & Media Art Column -->
+            <div class="column">
+                <h2>
+                    <span>INTRO TO CODE & MEDIA ART</span>
+                    <span class="emoji">🪐</span>
+                </h2>
+                <a href="javascript:void(0)" class="course-link"
+                    onclick="openCourseInfo('https://code.vinnyroca.info/', 'Intro to Code & Media Art')">Learn more
+                    about the course</a>
+                <hr>
+                <div class="project-description">
+                    <strong>Interactive Narrative Project</strong><br>
+                    Click on images to explore interactive narrative programming projects
+                </div>
+
+                <div class="gallery">
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openProject('https://editor.p5js.org/cynthiaarenas/full/isZpk1kFZ', 'Cynthia Arenas & Nikki Mielcarek')">
+                            <div>
+                                <img src="/asssets/code/Arenas.jpg" alt="Cynthia Arenas & Nikki Mielcarek" class="icon">
+                                <div class="caption">Cynthia Arenas & Nikki Mielcarek</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openProject('https://editor.p5js.org/samuelbingham07/full/tWTd79WJ4', 'Same Bingham, Avery Carter, Xavier Johnson')">
+                            <div>
+                                <img src="/asssets/code/Bingham.jpg" alt="Same Bingham, Avery Carter, Xavier Johnson" class="icon">
+                                <div class="caption">Same Bingham, Avery Carter, Xavier Johnson</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openProject('https://editor.p5js.org/sadiedrucker/full/Oyf7_2BHT', 'Sadie Drucker')">
+                            <div>
+                                <img src="/asssets/code/Drucker.jpg" alt="Sadie Drucker" class="icon">
+                                <div class="caption">Sadie Drucker</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openProject('https://editor.p5js.org/addylaforge/full/aPb5Z0Dqy', 'Addy LaForge & Marilyn Ma')">
+                            <div>
+                                <img src="/asssets/code/Laforge.jpg" alt="Addy LaForge & Marilyn Ma" class="icon">
+                                <div class="caption">Addy LaForge & Marilyn Ma</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openProject('https://editor.p5js.org/carmenbv/full/SgJOQP3m7', 'Khai Mohammad, Carmen Velazquez, Drew Wilkinson')">
+                            <div>
+                                <img src="/asssets/code/Mohammad.jpg" alt="Khai Mohammad, Carmen Velazquez, Drew Wilkinson" class="icon">
+                                <div class="caption">Khai Mohammad, Carmen Velazquez, Drew Wilkinson</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openProject('https://editor.p5js.org/Qsammut/full/RhwYqiV-B', 'Quinn Sammut')">
+                            <div>
+                                <img src="/asssets/code/Sammut.jpg" alt="Quinn Sammut" class="icon">
+                                <div class="caption">Quinn Sammut</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="gallery-item">
+                        <div class="clickable"
+                            onclick="openProject('https://editor.p5js.org/ZuriYay/full/Z0-KdwvEq', 'Zuriel Silva')">
+                            <div>
+                                <img src="/asssets/code/Silva.jpg" alt="Zuriel Silva" class="icon">
+                                <div class="caption">Zuriel Silva</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF/Media Viewer Modal -->
+    <div class="pdf-modal" id="pdfModal">
+        <div class="pdf-viewer">
+            <div class="pdf-header">
+                <div class="pdf-title" id="pdfTitle">Student Project</div>
+                <div class="pdf-controls" id="pdfControls" style="display: none;">
+                    <button class="control-btn" id="prevBtn" onclick="prevPage()">← Previous</button>
+                    <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                    <button class="control-btn" id="nextBtn" onclick="nextPage()">Next →</button>
+                </div>
+                <button class="close-btn" onclick="closeViewer()">×</button>
+            </div>
+            <div class="pdf-content" id="pdfContent">
+                <canvas id="pdfCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configure PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+        let scale = 1.5;
+        let canvas = document.getElementById('pdfCanvas');
+        let ctx = canvas.getContext('2d');
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function (page) {
+                const container = document.getElementById('pdfContent');
+                const containerWidth = container.clientWidth - 80; // Account for padding
+                const containerHeight = container.clientHeight - 80; // Account for padding
+
+                // Get the page dimensions at scale 1
+                const viewport = page.getViewport({ scale: 1 });
+
+                // Calculate scale to fit both width and height
+                const scaleWidth = containerWidth / viewport.width;
+                const scaleHeight = containerHeight / viewport.height;
+
+                // Use the smaller scale to ensure it fits in both dimensions
+                const scaleToFit = Math.min(scaleWidth, scaleHeight);
+
+                // Get new viewport with calculated scale
+                const scaledViewport = page.getViewport({ scale: scaleToFit });
+
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: scaledViewport
+                };
+
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+
+            document.getElementById('pageInfo').textContent = 'Page ' + num + ' of ' + pdfDoc.numPages;
+            document.getElementById('prevBtn').disabled = (num <= 1);
+            document.getElementById('nextBtn').disabled = (num >= pdfDoc.numPages);
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function prevPage() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        function openPDF(url, studentName) {
+            const modal = document.getElementById('pdfModal');
+            const title = document.getElementById('pdfTitle');
+            const content = document.getElementById('pdfContent');
+            const controls = document.getElementById('pdfControls');
+
+            title.textContent = studentName + ' - Dream Object';
+            content.innerHTML = '<div class="loading" id="loadingText">Loading PDF...</div><canvas id="pdfCanvas" style="display: none;"></canvas>';
+            canvas = document.getElementById('pdfCanvas');
+            ctx = canvas.getContext('2d');
+            controls.style.display = 'flex';
+            modal.classList.add('active');
+
+            pageNum = 1;
+
+            pdfjsLib.getDocument(url).promise.then(function (pdf) {
+                pdfDoc = pdf;
+                renderPage(pageNum);
+                // Hide loading text and show canvas
+                document.getElementById('loadingText').style.display = 'none';
+                canvas.style.display = 'block';
+            }).catch(function (error) {
+                content.innerHTML = '<div class="loading">Error loading PDF. <button class="control-btn" onclick="window.open(\'' + url + '\', \'_blank\')">Open in New Tab</button></div>';
+                controls.style.display = 'none';
+            });
+        }
+
+        function openMedia(url, studentName) {
+            const modal = document.getElementById('pdfModal');
+            const title = document.getElementById('pdfTitle');
+            const content = document.getElementById('pdfContent');
+            const controls = document.getElementById('pdfControls');
+
+            title.textContent = studentName + ' - Dream Object';
+            controls.style.display = 'none';
+            content.innerHTML = '<video controls style="max-width: 100%; max-height: 100%;"><source src="' + url + '" type="video/mp4"></video>';
+            modal.classList.add('active');
+        }
+
+        function openProject(url, studentName) {
+            const modal = document.getElementById('pdfModal');
+            const title = document.getElementById('pdfTitle');
+            const content = document.getElementById('pdfContent');
+            const controls = document.getElementById('pdfControls');
+
+            title.textContent = studentName + ' - Interactive Narrative';
+            controls.style.display = 'none';
+            content.innerHTML = '<iframe src="' + url + '" style="width: 100%; height: 100%; border: none;"></iframe>';
+            modal.classList.add('active');
+        }
+
+        function openCourseInfo(url, courseName) {
+            const modal = document.getElementById('pdfModal');
+            const title = document.getElementById('pdfTitle');
+            const content = document.getElementById('pdfContent');
+            const controls = document.getElementById('pdfControls');
+
+            title.textContent = courseName;
+            controls.style.display = 'none';
+            content.innerHTML = '<iframe src="' + url + '" style="width: 100%; height: 100%; border: none;"></iframe>';
+            modal.classList.add('active');
+        }
+
+        function closeViewer() {
+            const modal = document.getElementById('pdfModal');
+            const content = document.getElementById('pdfContent');
+
+            modal.classList.remove('active');
+            content.innerHTML = '<canvas id="pdfCanvas"></canvas>';
+            pdfDoc = null;
+        }
+
+        // Close modal when clicking outside the viewer
+        document.getElementById('pdfModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeViewer();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeViewer();
+            }
+        });
+    </script>
+</body>
+
+</html>
